@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 2
+names: ['------------------------------', 'Pothole Segmentation - v14 2023-09-22 10-14am']
+
+roboflow:
+  workspace: qun-lswwk
+  project: my-first-project-6ixmh
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/qun-lswwk/my-first-project-6ixmh/dataset/1
