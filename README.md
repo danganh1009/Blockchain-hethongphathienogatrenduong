@@ -4,67 +4,78 @@
 
 ---
 
-## 📌 Ứng dụng trí tuệ nhân tạo trong giao thông thông minh
+## � Hệ thống Xác Thực Blockchain
 
-Hệ thống phát hiện ổ gà từ camera điện thoại theo thời gian thực sử dụng mô hình YOLOv8 và OpenCV.
-
----
-
-## 🔍 Giới thiệu
-Ổ gà trên đường là nguyên nhân gây nguy hiểm cho người tham gia giao thông, đặc biệt với xe máy.  
-Đề tài hướng đến xây dựng hệ thống có thể **tự động nhận diện ổ gà** từ video camera gắn trên phương tiện,  
-từ đó cảnh báo người lái, góp phần nâng cao an toàn và giảm tai nạn.
+Hệ thống phát hiện ổ gà tích hợp công nghệ **Blockchain** để xác thực, lưu trữ và chia sẻ dữ liệu phát hiện một cách minh bạch và bất biến.
 
 ---
 
-## 🏗️ Kiến trúc hệ thống
-Hệ thống gồm 5 bước chính:
-
-1. **Thu thập dữ liệu**: Quay video thực tế bằng điện thoại trong điều kiện trời sáng.  
-2. **Tiền xử lý & gắn nhãn**: Tách ảnh từ video, dùng LabelImg để vẽ khung quanh ổ gà.  
-3. **Huấn luyện mô hình**: Sử dụng YOLOv8 (PyTorch), tinh chỉnh tham số (epoch, batch size, learning rate).  
-4. **Đánh giá mô hình**: Sử dụng các chỉ số mAP, Precision, Recall.  
-5. **Triển khai**: Tích hợp mô hình với OpenCV để phát hiện ổ gà từ video thời gian thực.
+## 📌 Tính năng Blockchain
+- **Xác thực dữ liệu**: Mỗi phát hiện ổ gà được ghi lại trên blockchain với hash duy nhất.  
+- **Minh bạch & Bất biến**: Toàn bộ dữ liệu phát hiện được lưu trữ công khai, không thể chỉnh sửa hay xóa.  
+- **GPS + Blockchain**: Mỗi phát hiện kèm theo tọa độ GPS chính xác và thông tin blockchain.  
+- **Xác thực cộng đồng**: Cộng đồng người dùng có thể xác minh và quản lý các báo cáo ổ gà.  
 
 ---
 
-## ⚙️ Tính năng chính
-- Nhận diện ổ gà trực tiếp từ video camera.  
-- Hiển thị khung bao quanh ổ gà và độ tin cậy (confidence score).  
-- Có thể triển khai trên laptop hoặc tối ưu để chạy trên điện thoại (TFLite, CoreML).  
-- Dễ mở rộng với dữ liệu nhiều điều kiện thời tiết (mưa, tối).  
+## 🖥️ Kiến trúc Blockchain
+- **Blockchain**: Sepolia Testnet (Ethereum)
+- **Smart Contract**: PotholeHashRegistry.sol  
+- **Dữ liệu lưu trữ**: Hình ảnh, vị trí GPS, hash blockchain, timestamp
+- **Công khai**: Tất cả dữ liệu có thể xem tại: [Blockchain Explorer](link_sepolia_testnet)
 
 ---
 
-## 🖥️ Công nghệ sử dụng
-- **Python/Visual_Studio_Code**
-- **PyTorch**
-- **Ultralytics YOLOv8**
-- **OpenCV**
-- **LabelImg / Roboflow**
+## 🔍 Giao diện Xác Thực
+
+![Xác Thực Blockchain](blockchain_interface.png)
+
+Giao diện cho phép người dùng xem danh sách các phát hiện ổ gà cùng thông tin blockchain:
+- Ảnh phát hiện
+- Thời gian ghi lại (timestamp)
+- Tọa độ GPS
+- Hash blockchain (SHA-256 trên Sepolia Testnet)
+- Nút "Xác Thực" để kiểm tra trên blockchain
 
 ---
 
-## 📊 Kết quả thử nghiệm
+## 📊 Các Ảnh Phát Hiện
 
-Ví dụ nhận diện ổ gà trên đoạn đường thực tế:
+![Các Ảnh Phát Hiện Ổ Gà](detection_images.png)
 
-![demo](link_anh_demo.png)
-
-- Độ chính xác (mAP): ~80%  
-- Tốc độ xử lý: ~80 FPS trên GPU  
-
-Mô hình có khả năng nhận diện ổ gà rõ ràng trong điều kiện trời sáng.  
-Một số hạn chế: dễ nhầm với vết dầu, bóng tối; khó phát hiện khi ổ gà nhỏ hoặc bị nước che phủ.  
+Hệ thống hiển thị bộ sưu tập các ổ gà được phát hiện:
+- **Frame ID**: Định danh khung hình
+- **Thời gian**: Ngày giờ phát hiện
+- **Vị trí GPS**: Tọa độ chính xác (lat, lon)
+- **Hash Blockchain**: Mã hash xác thực trên blockchain
+- **Nút Xác Thực**: Liên kết trực tiếp đến Sepolia Testnet
 
 ---
 
-## 📌 Kết luận & Hướng phát triển
-- Đề tài cho thấy khả năng ứng dụng học sâu trong việc hỗ trợ an toàn giao thông.  
-- Trong tương lai có thể:
-  - Bổ sung dữ liệu ban đêm, trời mưa.  
-  - Kết hợp GPS để xác định vị trí ổ gà.  
-  - Triển khai ứng dụng di động cảnh báo trực tiếp cho người lái.  
+## ⚙️ Công nghệ sử dụng
+- **AI/ML**: YOLOv8, OpenCV, PyTorch  
+- **Blockchain**: Solidity, Web3.py, Sepolia Testnet  
+- **Backend**: Python, Flask  
+- **Frontend**: HTML, CSS, JavaScript  
+- **GPS**: Định vị toàn cầu, Tọa độ kinh vĩ độ  
+
+---
+
+## 🔐 Quy trình Xác Thực
+1. **Phát hiện**: YOLOv8 phát hiện ổ gà từ video
+2. **Ghi GPS**: Lấy tọa độ GPS hiện tại
+3. **Tính Hash**: Tạo SHA-256 từ dữ liệu ảnh + GPS
+4. **Ghi Blockchain**: Lưu hash lên Sepolia Testnet thông qua PotholeHashRegistry
+5. **Công khai**: Dữ liệu có thể truy cập công khai trên blockchain explorer
+
+---
+
+## 📌 Ưu điểm của Blockchain
+✅ **Minh bạch**: Toàn bộ dữ liệu công khai, có thể kiểm chứng  
+✅ **An toàn**: Dữ liệu được mã hóa và bất biến  
+✅ **Phân tán**: Không phụ thuộc vào máy chủ tập trung  
+✅ **Truy cập**: Bất kỳ ai cũng có thể xác minh và truy cập dữ liệu  
+✅ **Ứng dụng**: Hỗ trợ quản lý hạ tầng giao thông hiệu quả  
 
 ---
 
