@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔗 Xác Thực Blockchain</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Custom styles for blockchain page */
+        body {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        }
+
+        .blockchain-header {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 40px 0;
+        }
+
+        .mono {
+            font-family: 'Courier New', 'Courier', monospace;
+            font-size: 0.9em;
+            word-break: break-all;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .mono.short {
+            word-break: normal;
+            white-space: nowrap;
+        }
+
+        .verify-button {
+            background: linear-gradient(135deg, var(--info) 0%, #0891b2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .verify-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .verify-result {
+            margin-top: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .verify-result.success {
+            color: var(--success);
+        }
+
+        .verify-result.error {
+            color: var(--danger);
+        }
+
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 60px 20px;
+        }
+
+        .empty p {
+            font-size: 1.1em;
+        }
+
+        .panel {
+            border-top: 4px solid var(--info);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Xác Thực Blockchain</h1>
+            <p>Xác thực ảnh, thời gian và vị trí bằng SHA-256 trên Sepolia Testnet</p>
+            <div class="nav">
+                <a href="/">⬅️ Quay về trang chính</a>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="controls">
+                <div>♻️ Tự động reload danh sách mỗi 10 giây</div>
+                <button class="refresh-button" onclick="loadRows()">🔄 Reload</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Ảnh</th>
+                        <th>Thời gian & Vị trí</th>
+                        <th>Hash</th>
+                        <th>Transaction</th>
+                        <th>Xác Thực</th>
+                    </tr>
+                </thead>
+                <tbody id="rows"></tbody>
+            </table>
+            <div id="empty" class="empty" style="display: none;">
+                <p>📭 Chưa có dữ liệu xác thực</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const VERIFY_CACHE_KEY = 'verifyCacheV1';
+
+        function loadVerifyCache() {
+            try {
+                const raw = localStorage.getItem(VERIFY_CACHE_KEY);
+                return raw ? JSON.parse(raw) : {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function saveVerifyCache(cache) {
+            try {
+                localStorage.setItem(VERIFY_CACHE_KEY, JSON.stringify(cache));
+            } catch (error) {
+                // ignore storage errors
+            }
+        }
+
+        async function loadRows() {
+            const res = await fetch('/api/detections');
+            const data = await res.json();
+            const rows = document.getElementById('rows');
+            rows.innerHTML = '';
+            const cache = loadVerifyCache();
+
+            if (!data.length) {
+                document.getElementById('empty').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('empty').style.display = 'none';
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                const location = item.location ? `${item.location.lat}, ${item.location.lon}` : 'Không có';
+                const tx = item.tx_hash || '—';
+                const hash = item.data_hash || '—';
+                const txShort = tx.length > 16 ? `${tx.slice(0, 8)}...${tx.slice(-6)}` : tx;
+                const hashShort = hash.length > 16 ? `${hash.slice(0, 8)}...${hash.slice(-6)}` : hash;
+                tr.innerHTML = `
+                    <td>
+                        <img class="thumb" src="/image/${item.image_file}" alt="Detection">
+                    </td>
+                    <td>
+                        <div>${item.timestamp || '--'}</div>
+                        <div>📍 ${location}</div>
+                    </td>
+                    <td class="mono short" title="${hash}">${hashShort}</td>
+                    <td class="mono short" title="${tx}">${txShort}</td>
+                    <td>
+                        <button class="verify-button" onclick="verify('${item.image_file}', this)">Xác thực</button>
+                        <div class="verify-result">${cache[item.image_file] || ''}</div>
+                    </td>
+                `;
+                rows.appendChild(tr);
+            });
+
+            return data;
+        }
+
+        async function verify(imageFile, buttonEl) {
+            const resultEl = buttonEl.nextElementSibling;
+            resultEl.textContent = 'Đang xác thực...';
+            try {
+                const response = await fetch(`/api/verify?image_file=${encodeURIComponent(imageFile)}`);
+                const data = await response.json();
+                if (!data.ok) {
+                    const message = `Lỗi: ${data.error}`;
+                    resultEl.textContent = message;
+                    const cache = loadVerifyCache();
+                    cache[imageFile] = message;
+                    saveVerifyCache(cache);
+                    return;
+                }
+                const message = data.on_chain ? '✅ Hợp lệ trên blockchain' : '❌ Không tìm thấy trên blockchain';
+                resultEl.textContent = message;
+                const cache = loadVerifyCache();
+                cache[imageFile] = message;
+                saveVerifyCache(cache);
+            } catch (error) {
+                const message = 'Lỗi kết nối';
+                resultEl.textContent = message;
+                const cache = loadVerifyCache();
+                cache[imageFile] = message;
+                saveVerifyCache(cache);
+            }
+        }
+
+        loadRows();
+        setInterval(loadRows, 10000);
+    </script>
+</body>
+</html>

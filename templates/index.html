@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛣️ Phát Hiện Ổ Gà Trên Đường</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Custom styles for index page */
+        .detection-count {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin: 8px 0;
+        }
+
+        .refresh-button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .refresh-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .verify-button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .verify-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .verify-result {
+            margin-top: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .verify-result.success {
+            color: var(--success);
+        }
+
+        .verify-result.error {
+            color: var(--danger);
+        }
+
+        .no-detections {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .no-detections p {
+            font-size: 1.1em;
+            margin-bottom: 12px;
+        }
+
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .nav-header {
+            display: inline-flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .nav-header a {
+            color: white;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-header a:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛣️ Phát Hiện Ổ Gà Trên Đường</h1>
+            <p>Hệ thống phát hiện ổ gà bằng Deep Learning</p>
+            <div class="nav-header">
+                <a href="/">🏠 Trang chính</a>
+                <a href="/blockchain">🔗 Blockchain</a>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>📊 Tổng Ảnh Phát Hiện</h3>
+                <div class="stat-value" id="total-images">0</div>
+                <div class="stat-time">Hình ảnh</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>🔴 Tổng Ổ Gà</h3>
+                <div class="stat-value" id="total-detections">0</div>
+                <div class="stat-time">Lỗ phát hiện</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>⏰ Phát Hiện Gần Nhất</h3>
+                <div class="stat-value" id="latest-time" style="font-size: 2em;">--:--:--</div>
+                <div class="stat-time">Thời gian</div>
+            </div>
+        </div>
+
+        <div class="live-section">
+            <h2>🎥 Video Trực Tiếp</h2>
+            <img class="live-video" src="/video_feed" alt="Live stream">
+        </div>
+
+        <div class="detections-section">
+            <div class="controls-header">
+                <h2>📷 Các Ảnh Phát Hiện</h2>
+                <button class="refresh-button" onclick="loadDetections()">🔄 Làm tươi</button>
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="loader"></div>
+                <p>Đang tải dữ liệu...</p>
+            </div>
+
+            <div id="detections-container" class="detections-grid"></div>
+
+            <div id="no-detections" class="no-detections" style="display: none;">
+                <p>😕 Chưa có phát hiện nào</p>
+                <p>Bắt đầu chạy main.py để phát hiện ổ gà</p>
+            </div>
+
+            <div class="auto-refresh">
+                ♻️ Tự động làm tươi mỗi 3 giây
+            </div>
+        </div>
+
+        <footer>
+            <p>💡 Hệ thống Phát Hiện Ổ Gà Trên Đường - Bản Beta v1.0</p>
+        </footer>
+    </div>
+
+    <script>
+        const REFRESH_INTERVAL = 3000; // 3 giây
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+
+                document.getElementById('total-images').textContent = stats.total_images;
+                document.getElementById('total-detections').textContent = stats.total_detections;
+
+                if (stats.latest_detection) {
+                    document.getElementById('latest-time').textContent = stats.latest_detection;
+                }
+            } catch (error) {
+                console.error('Lỗi tải thống kê:', error);
+            }
+        }
+
+        async function loadDetections() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+
+                const response = await fetch('/api/detections');
+                const detections = await response.json();
+
+                const container = document.getElementById('detections-container');
+                container.innerHTML = '';
+
+                if (detections.length === 0) {
+                    document.getElementById('no-detections').style.display = 'block';
+                    document.getElementById('loading').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('no-detections').style.display = 'none';
+
+                detections.forEach(detection => {
+                    const card = document.createElement('div');
+                    card.className = 'detection-card';
+
+                    const timeStr = detection.timestamp || '--:--:--';
+                    const frameNum = detection.frame_number;
+                    const count = detection.detection_count;
+                    const imageFile = detection.image_file;
+                    const location = detection.location;
+                    const locationText = location ? `${location.lat}, ${location.lon}` : 'Không có';
+                    const dataHash = detection.data_hash || '—';
+                    
+                    // Tạo link Google Maps nếu có vị trí
+                    const mapsLink = location ? `https://maps.google.com/?q=${location.lat},${location.lon}` : '#';
+                    const mapsTarget = location ? 'target="_blank"' : '';
+
+                    card.innerHTML = `
+                        <img src="/image/${imageFile}" alt="Detection" class="detection-image" onerror="this.src='/static/placeholder.png'">
+                        <div class="detection-info">
+                            <div class="detection-time">⏰ ${timeStr}</div>
+                            <div>
+                                <span style="color: #666;">Frame #${frameNum}</span><br>
+                                <span class="detection-count">🔴 ${count} ổ gà</span><br>
+                                <a href="${mapsLink}" ${mapsTarget} style="color: #0066cc; text-decoration: none; cursor: pointer; font-weight: 600;">📍 ${locationText}</a><br>
+                                <span style="color: #666;"># ${dataHash}</span><br>
+                                <button class="verify-button" onclick="verifyDetection('${imageFile}', this)">Xác thực</button>
+                                <div class="verify-result"></div>
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(card);
+                });
+
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                console.error('Lỗi tải detections:', error);
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Tải dữ liệu khi load trang
+        window.addEventListener('load', () => {
+            loadStats();
+            loadDetections();
+
+            // Tự động làm tươi mỗi 3 giây
+            setInterval(() => {
+                loadStats();
+                loadDetections();
+            }, REFRESH_INTERVAL);
+        });
+
+        async function verifyDetection(imageFile, buttonEl) {
+            const resultEl = buttonEl.nextElementSibling;
+            resultEl.textContent = 'Đang xác thực...';
+            try {
+                const response = await fetch(`/api/verify?image_file=${encodeURIComponent(imageFile)}`);
+                const data = await response.json();
+                if (!data.ok) {
+                    resultEl.textContent = `Lỗi: ${data.error}`;
+                    return;
+                }
+                resultEl.textContent = data.on_chain ? '✅ Hợp lệ trên blockchain' : '❌ Không tìm thấy trên blockchain';
+            } catch (error) {
+                resultEl.textContent = 'Lỗi kết nối';
+            }
+        }
+    </script>
+</body>
+</html>

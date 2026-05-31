@@ -4,7 +4,11 @@ import glob
 import time
 from ultralytics import YOLO
 from gtts import gTTS
-from playsound import playsound
+try:
+    from playsound import playsound
+    HAS_PLAYSOUND = True
+except ImportError:
+    HAS_PLAYSOUND = False
 
 # ==============================
 # 1. Tạo file âm thanh cảnh báo nếu chưa có
@@ -59,7 +63,8 @@ while True:
     # Nếu phát hiện ổ gà -> cảnh báo
     if detected and (time.time() - last_alert_time > 5):  # cách nhau ít nhất 5s
         print("⚠️ Cảnh báo: Phía trước có ổ gà!")
-        playsound("canhbao.mp3", block=False)  # phát giọng nói song song
+        if HAS_PLAYSOUND:
+            playsound("canhbao.mp3", block=False)  # phát giọng nói song song
         last_alert_time = time.time()
 
     # Hiển thị video
