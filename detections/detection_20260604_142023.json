@@ -1,0 +1,13 @@
+{
+  "timestamp": "04/06/2026 14:20:23",
+  "timestamp_iso": "2026-06-04T14:20:23.508473",
+  "frame_number": 640,
+  "detection_count": 3,
+  "image_file": "detection_20260604_142023.jpg",
+  "location": {
+    "lat": 10.775543,
+    "lon": 106.700407
+  },
+  "data_hash": "3abad10e976d40d44351364fecd3208211510d1997cc4dc73ec34790df3f79ce",
+  "tx_hash": "0x79b4cd9715876a0f742c7178dc95c66023c157d498e7083d7f4855c32a91497a"
+}
